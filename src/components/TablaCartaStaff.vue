@@ -178,8 +178,7 @@
         color="primary"
         @click="initialize"
       >
-        Reset
-      </v-btn>
+Cargar Datos      </v-btn>
     </template>
   </v-data-table>
 </template>

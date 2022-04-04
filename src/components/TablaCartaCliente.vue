@@ -19,7 +19,7 @@
 
                   <v-timeline align-top dense>
                     <v-timeline-item
-                      v-for="(plato,  key) in editedItem.platos"
+                      v-for="(plato, key) in editedItem.platos"
                       :key="key"
                       :color="key % 2 == 0 ? 'red' : 'blue'"
                       small
@@ -31,10 +31,7 @@
                         <div>{{ plato }}</div>
                       </div>
                     </v-timeline-item>
-                     <v-timeline-item
-                      :color="'green'"
-                      small
-                    >
+                    <v-timeline-item :color="'green'" small>
                       <div>
                         <div class="font-weight-normal">
                           <strong>Bebida:</strong>
@@ -43,6 +40,21 @@
                       </div>
                     </v-timeline-item>
                   </v-timeline>
+
+                  <v-rating
+                    v-model="editedItem.rating"
+                    color="yellow darken-3"
+                    background-color="grey darken-1"
+                    empty-icon="$ratingFull"
+                    hover
+                    large
+                  ></v-rating>
+                  <v-spacer></v-spacer>
+                  <v-btn
+                    color="blue darken-1"
+                    text
+                    @click="addValoration()"
+                  >Añadir valoración</v-btn>
                 </v-card-text>
               </v-container>
             </v-card-text>
@@ -53,24 +65,19 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-        <v-dialog v-model="dialogDelete" max-width="500px">
-          <v-card>
-            <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="closeDelete">Cancel</v-btn>
-              <v-btn color="blue darken-1" text @click="deleteItemConfirm">OK</v-btn>
-              <v-spacer></v-spacer>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
       </v-toolbar>
     </template>
     <template v-slot:item.actions="{ item }">
-      <v-icon small class="mr-2" @click="editItem(item)">mdi-eye</v-icon>
+      <v-icon small class="mr-2" @click="showMenu(item)">mdi-eye</v-icon>
+      <v-icon
+        small
+        class="mr-2"
+        @click="addFavourite(item)"
+        :color="item.is_favourite ? 'red' : ''"
+      >mdi-heart</v-icon>
     </template>
     <template v-slot:no-data>
-      <v-btn color="primary" @click="initialize">Reset</v-btn>
+      <v-btn color="primary" @click="initialize">Cargar Datos</v-btn>
     </template>
   </v-data-table>
 </template>
@@ -80,7 +87,6 @@ import axios from 'axios'
 export default {
   data: () => ({
     dialog: false,
-    dialogDelete: false,
     headers: [
       {
         text: 'Nombre',
@@ -103,6 +109,8 @@ export default {
       platos: [],
       bebida: '',
       stck: 0,
+      is_favourite: false,
+      rating: 0
     },
     defaultItem: {
       nombre: '',
@@ -112,15 +120,14 @@ export default {
       platos: [],
       bebida: '',
       stck: 0,
+      is_favourite: false,
+      rating: 0
     },
   }),
 
   watch: {
     dialog(val) {
       val || this.close()
-    },
-    dialogDelete(val) {
-      val || this.closeDelete()
     },
   },
 
@@ -130,7 +137,13 @@ export default {
 
   methods: {
     initialize() {
-      this.all()
+      this.all().then(() => {
+        this.menus.forEach(menu => {
+          menu.is_favourite = localStorage.getItem(menu.id) === 'true' ? true : false
+          this.editedIndex = this.menus.indexOf(menu)
+          this.editedItem = Object.assign({}, menu)
+        });
+      })
     },
 
     async all() {
@@ -144,30 +157,11 @@ export default {
         })
     },
 
-    editItem(item) {
+    showMenu(item) {
       this.editedIndex = this.menus.indexOf(item)
+      console.log(this.editedIndex)
       this.editedItem = Object.assign({}, item)
       this.dialog = true
-    },
-
-    async deleteItem(item) {
-      this.editedIndex = this.menus.indexOf(item)
-      this.editedItem = Object.assign({}, item)
-      this.dialogDelete = true
-
-      await axios.delete('http://localhost:3000/carta/menu/borrarmenu/' + item.nombre)
-        .then((response) => {
-          console.log(response);
-        })
-        .catch(function (error) {
-          // handle error
-          console.log(error);
-        })
-    },
-
-    deleteItemConfirm() {
-      this.menus.splice(this.editedIndex, 1)
-      this.closeDelete()
     },
 
     close() {
@@ -178,12 +172,26 @@ export default {
       })
     },
 
-    closeDelete() {
-      this.dialogDelete = false
-      this.$nextTick(() => {
-        this.editedItem = Object.assign({}, this.defaultItem)
-        this.editedIndex = -1
-      })
+    addFavourite(item) {
+      item.is_favourite = !item.is_favourite;
+      localStorage.setItem(item.id, item.is_favourite);
+      this.editedIndex = this.menus.indexOf(item)
+      this.editedItem = Object.assign({}, item)
+    },
+
+    async addValoration() {
+        await axios.put('http://localhost:3000/carta/menu/addValoration/' + this.editedItem.nombre + '/' + this.editedItem.rating)
+          .then(() => {
+            this.getMenu(this.editedItem).then((response) => {
+              Object.assign(this.menus[this.editedIndex], response.data)
+              console.log(this.editedIndex, this.menus[this.editedIndex])
+              this.close()
+            })
+          })
+          .catch(function (error) {
+            // handle error
+            console.log(error);
+          })
     },
 
     async save() {
@@ -191,6 +199,7 @@ export default {
         await axios.put('http://localhost:3000/carta/menu/edit/' + this.editedItem.id, this.editedItem)
           .then(() => {
             Object.assign(this.menus[this.editedIndex], this.editedItem)
+
           })
           .catch(function (error) {
             // handle error
@@ -198,9 +207,8 @@ export default {
           })
       } else {
         await axios.post('http://localhost:3000/carta/menu/insertar', this.editedItem)
-          .then((response) => {
+          .then(() => {
             this.menus.push(this.editedItem)
-            console.log(response);
           })
           .catch(function (error) {
             // handle error
@@ -210,6 +218,10 @@ export default {
       }
       this.close()
     },
+
+    getMenu(item) {
+      return axios.get('http://localhost:3000/carta/menu/' + item.nombre)
+    }
   },
 }
 </script>
