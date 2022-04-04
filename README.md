@@ -1,4 +1,4 @@
-# vuetify_alex
+# vuetify_menus
 
 ## Project setup
 ```
