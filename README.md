@@ -1,24 +1,18 @@
 # vuetify_menus
 
-## Project setup
+## Instalar Proyecto
 ```
 npm install
 ```
 
-### Compiles and hot-reloads for development
+### Ejecutar servidor
 ```
 npm run serve
 ```
 
-### Compiles and minifies for production
-```
-npm run build
-```
+Este proyecto está hecho con vue y vuetify, usando varias plantillas de vuetify para la creación de la tabla, ventanas emergentes, botones, etc.
 
-### Lints and fixes files
-```
-npm run lint
-```
+La idea es consumir un API externa para mostrar una serie de datos, en este caso menús e una tabla
+Pudiendo hacer las operaciones las operaciones básicas de CRUD para jugar con estos datos y como se muestran en la tabla.
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+Como añadido también hay un botón de "favoritos" que funciona guardando el dato en el local Storage.
