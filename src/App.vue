@@ -15,14 +15,13 @@
           width="40"
         />
 
-        <v-img
-          alt="Vuetify Name"
-          class="shrink mt-1 hidden-sm-and-down"
+        <h1
+          alt="Restsaurant Logo"
+          class="shrink mr-2"
           contain
-          min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
-          width="100"
-        />
+          width="40"
+          color = "black"
+        >Cartify</h1>
       </div>
 
       <v-spacer></v-spacer>
